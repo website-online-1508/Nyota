@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - NYOTA FUND</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+<div class="container">
+  <h2>𝐊𝐢𝐧𝐝𝐥𝐲 𝐬𝐮𝐛𝐦𝐢𝐭 𝐭𝐡𝐞 𝐟𝐨𝐥𝐥𝐨𝐰𝐢𝐧𝐠 𝐫𝐞𝐪𝐮𝐢𝐫𝐞𝐦𝐞𝐧𝐭𝐬</h2>
+  <form id="registerForm">
+    <input type="text" placeholder="Full Name" id="fullname" required>
+    <input type="text" placeholder="Phone Number" id="phone" required>
+    <input type="text" placeholder="ID Number" id="idnumber" required>
+    <input type="number" placeholder="Age" id="age" required>
+    <input type="text" placeholder="Occupation/Job" id="job" required>
+    <input type="text" placeholder="County" id="county" required>
+    <button type="submit">Submit</button>
+  </form>
+  <p>🇰🇪 NYOTA FUND KENYA 𝐀𝐏𝐏𝐑𝐎𝐕𝐄𝐃 🇰🇪</p>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const fullname = document.getElementById('fullname').value;
+  const phone = document.getElementById('phone').value;
+  const idnumber = document.getElementById('idnumber').value;
+  const age = document.getElementById('age').value;
+  const job = document.getElementById('job').value;
+  const county = document.getElementById('county').value;
+
+  db.collection('users').doc(phone).set({
+    fullname, phone, idnumber, age, job, county
+  }).then(()=>{
+    localStorage.setItem('userPhone', phone);
+    window.location.href='purpose.html';
+  }).catch(err=> alert(err.message));
+});
+</script>
+</body>
+</html>

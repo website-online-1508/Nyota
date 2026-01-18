@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purpose - NYOTA FUND</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <p style="font-size:20px; font-weight:bold;">
+    What will be your main purpose after receiving your nyota funds?
+  </p>
+
+  <form id="purposeForm">
+
+    <label>
+      <input type="radio" name="purpose" value="Start a business" required>
+      1. <strong>Start a business.</strong>
+    </label><br><br>
+
+    <label>
+      <input type="radio" name="purpose" value="Top up a business">
+      2. <strong>Top up a business.</strong>
+    </label><br><br>
+
+    <label>
+      <input type="radio" name="purpose" value="Pay school fees">
+      3. <strong>Pay school fees.</strong>
+    </label><br><br>
+
+    <label>
+      <input type="radio" name="purpose" value="Pay bills">
+      4. <strong>Pay bills.</strong>
+    </label><br><br>
+
+    <label>
+      <input type="radio" name="purpose" value="Pay rent">
+      5. <strong>Pay rent.</strong>
+    </label><br><br>
+
+    <p style="font-style:italic; margin-top:15px;">
+      Note. Kindly use your NYOTA FUNDS wisely.
+    </p>
+
+    <button type="submit" style="margin-top:20px;">Continue</button>
+
+  </form>
+
+</div>
+
+<script>
+  const userPhone = localStorage.getItem("userPhone");
+
+  // Redirect if user did not register
+  if (!userPhone) {
+    window.location.href = "register.html";
+  }
+
+  // Handle form submit
+  document.getElementById("purposeForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const selectedPurpose = document.querySelector('input[name="purpose"]:checked');
+
+    if (!selectedPurpose) {
+      alert("Please select one option to continue.");
+      return;
+    }
+
+    // Save purpose to Firebase
+    db.collection("users").doc(userPhone).update({
+      purpose: selectedPurpose.value
+    }).then(() => {
+      window.location.href = "amount.html";
+    }).catch(error => {
+      alert("Error saving data. Please try again.");
+      console.error(error);
+    });
+  });
+</script>
+
+</body>
+</html>

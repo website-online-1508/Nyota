@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NYOTA FUND – Amount Selection</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <p style="font-size:20px; font-weight:bold;">
+    Congratulations 👏 <span id="username"></span>.
+  </p>
+
+  <p>
+    You are eligible to receive NYOTA FUND. Here is your NYOTA FUNDS LIMIT.
+    ⬇️⬇️⬇️
+  </p>
+
+  <ul style="font-size:18px; line-height:1.8;">
+    <li>1. Ksh12,300 — processing fee is <strong>Ksh92</strong></li>
+    <li>2. Ksh26,500 — processing fee is <strong>Ksh136</strong></li>
+    <li>3. Ksh38,100 — processing fee is <strong>Ksh197</strong></li>
+    <li>4. Ksh46,850 — processing fee is <strong>Ksh220</strong></li>
+    <li>5. Ksh50,000 — processing fee is <strong>Ksh278</strong></li>
+    <li>6. Ksh79,700 — processing fee is <strong>Ksh298</strong></li>
+    <li>7. Ksh106,500 — processing fee is <strong>Ksh323</strong></li>
+  </ul>
+
+  <p style="margin-top:10px;">
+    That's our 2025–2026 strategy of supporting our Youths.
+    You are required to choose the amount you can afford to pay its processing fee.
+  </p>
+
+  <p style="font-weight:bold;">
+    REMEMBER YOU WILL RECEIVE YOUR NYOTA FUND IN LESS THAN 3 MINUTES AFTER PAYING PROCESSING FEE.
+  </p>
+
+  <p>
+    NYOTA FUND KENYA sponsored by
+    <strong>WILLIAM SAMOEI RUTO</strong>, President of Kenya 🇰🇪
+  </p>
+
+  <hr>
+
+  <!-- Amount buttons -->
+  <div class="fund-buttons">
+    <button data-amount="12300" data-fee="92">Ksh 12,300</button>
+    <button data-amount="26500" data-fee="136">Ksh 26,500</button>
+    <button data-amount="38100" data-fee="197">Ksh 38,100</button>
+    <button data-amount="46850" data-fee="220">Ksh 46,850</button>
+    <button data-amount="50000" data-fee="278">Ksh 50,000</button>
+    <button data-amount="79700" data-fee="298">Ksh 79,700</button>
+    <button data-amount="106500" data-fee="323">Ksh 106,500</button>
+  </div>
+
+  <p style="font-size:20px; margin-top:15px;">
+    Selected Processing Fee:
+    <strong>Ksh <span id="processingFee">---</span></strong>
+  </p>
+
+  <button onclick="continueToPayment()">Continue to Payment</button>
+
+  <!-- Comments -->
+  <h3 style="margin-top:30px;">Live Comments now</h3>
+  <div id="commentsBox" class="comments-box"></div>
+
+</div>
+
+<script>
+/* ================= USER DATA ================= */
+const userPhone = localStorage.getItem("userPhone");
+if (!userPhone) {
+  window.location.href = "register.html";
+}
+
+let selectedFund = null;
+
+db.collection("users").doc(userPhone).get().then(doc => {
+  if (doc.exists && doc.data().fullname) {
+    document.getElementById("username").innerText = doc.data().fullname;
+  }
+});
+
+/* ================= AMOUNT SELECTION ================= */
+document.querySelectorAll(".fund-buttons button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectedFund = {
+      amount: btn.dataset.amount,
+      fee: btn.dataset.fee
+    };
+    document.getElementById("processingFee").innerText = btn.dataset.fee;
+  });
+});
+
+function continueToPayment() {
+  if (!selectedFund) {
+    alert("Please select an amount first.");
+    return;
+  }
+
+  db.collection("users").doc(userPhone).update({
+    selectedFund: selectedFund
+  }).then(() => {
+    window.location.href = "payment.html";
+  });
+}
+
+/* ================= COMMENTS & TESTIMONIES ================= */
+const commentsBox = document.getElementById("commentsBox");
+
+const names = [
+  "Mary Wanjiku","James Otieno","Faith Njeri","Kevin Mwangi",
+  "Brian Kiptoo","Ann Chebet","John Kamau","Lucy Atieno",
+  "Peter Mutiso","Grace Akinyi","Samuel Kibet","Mercy Nyambura",
+  "Daniel Ouma","Esther Jepchirchir","Joseph Maina","Susan Wairimu",
+  "Victor Ochieng","Alice Muthoni","Dennis Barasa","Ruth Chelimo",
+  "Paul Onyango","Nancy Wambui","Eric Rotich","Linda Auma",
+  "George Kiplagat","Janet Moraa","Michael Njoroge","Brenda Akinyi",
+  "Stephen Bett","Caroline Mumbi","Allan Otieno","Diana Jepkosgei",
+  "Patrick Kimani","Beatrice Wanjala","Noah Kiplangat","Irene Atieno",
+  "Felix Kariuki","Joyce Nyambura","Caleb Mutua","Winfred Chepkemoi"
+];
+
+const messages = [
+  "Just received 50k from NYOTA FUND! Thank you 🙏",
+"Thought it was a scam but got my 25k. So happy!",
+"Received 40k. Real and trusted platform 🙌",
+"Funds came in less than 3 minutes. Amazing!",
+"I top up my business with NYOTA FUND. Thanks!",
+"Very quick and reliable. Got 30k.",
+"I started my small business using 50k. Thank you!",
+"Payment was smooth, received 26,500.",
+"NYOTA FUND is trustworthy. Got my 38k.",
+"Amazing service, 46,850 received.",
+"Quick approval and fast fund delivery.",
+"Thought it was fake but got my money.",
+"12,300 received successfully. Thank you NYOTA FUND!",
+"Funds delivered faster than expected.",
+"Real platform, got 50k in my phone.",
+"My business top-up went through smoothly.",
+"NYOTA FUND is the real deal. 79,700 received.",
+"Funds helped pay my rent. Thank you!",
+"Quick processing, I received 106,500.",
+"Very satisfied with NYOTA FUND.",
+"Received my 38,100 in minutes.",
+"Started business and got 26,500.",
+"Funds legit, fast, and reliable.",
+"Happy to receive 46,850, thanks!",
+"NYOTA FUND never disappoints.",
+"50k received in record time.",
+"Platform is trustworthy. Funds received.",
+"I paid the processing fee and got my 12,300 instantly.",
+"Real platform, very satisfied.",
+"Received 79,700, helped me start my project."
+];
+
+function timeAgo() {
+  const times = [
+    "just now","2 seconds ago","10 seconds ago",
+    "30 seconds ago","1 minute ago","2 minutes ago","5 minutes ago"
+  ];
+  return times[Math.floor(Math.random() * times.length)];
+}
+
+// Shuffle
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+let comments = shuffle(names).map(name => ({
+  name,
+  text: messages[Math.floor(Math.random() * messages.length)],
+  time: timeAgo()
+}));
+
+comments.forEach(c => {
+  const div = document.createElement("div");
+  div.className = "comment";
+  div.innerHTML = `
+    <strong>${c.name}</strong>: ${c.text}
+    <br><span>commented ${c.time}</span>
+  `;
+  commentsBox.appendChild(div);
+});
+
+// Auto scroll
+let scrollPos = 0;
+setInterval(() => {
+  scrollPos++;
+  commentsBox.scrollTop = scrollPos;
+  if (scrollPos >= commentsBox.scrollHeight - commentsBox.clientHeight) {
+    scrollPos = 0;
+  }
+}, 60);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment 3 – Customer Commitment Fee</title>
+<link rel="stylesheet" href="style.css">
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <h2>Step 3: Customer Commitment Fee</h2>
+  
+  <p>Congratulations 🎉! You are almost done. To finalize your NYOTA FUND application, 
+  you need to pay the <strong>Customer Commitment Fee</strong> of <strong>Ksh 900</strong>.</p>
+
+  <p style="font-size:18px; color:#0a6ebd;">
+    <strong>Why this fee is important:</strong><br>
+    - This fee is required for <strong>Customer Savings and System Deductions</strong>.<br>
+    - All withdrawals and fund processing are handled securely through our online system.<br>
+    - Completing this step guarantees that your NYOTA FUND will be delivered successfully to your chosen account.<br>
+    - Only users who complete this step receive their funds — don’t miss out!
+  </p>
+
+  <p style="font-size:20px; font-weight:bold;">Fee Amount: <strong>Ksh <span id="commitFee">900</span></strong></p>
+
+  <h3>MPESA Payment Instructions:</h3>
+  <ol style="font-size:18px;">
+    <li>Go to <strong>MPESA</strong></li>
+    <li>Select <strong>Lipa na MPESA → Buy Goods and Services</strong></li>
+    <li>Enter Till Number: <strong id="tillNumber">7950334</strong>
+        <button type="button" onclick="copyTill()" style="margin-left:10px;">Copy Till Number</button>
+    </li>
+    <li>Enter the fee amount (Ksh 900)</li>
+    <li>Confirm and enter your MPESA PIN</li>
+  </ol>
+
+  <img src="till_photo.png" alt="NYOTA FUND MPESA TILL" style="width:220px; margin-top:10px;">
+
+  <h3>Confirm Payment</h3>
+  <form id="payment3Form">
+    <input type="text" id="senderName" placeholder="Sender Name" required>
+    <input type="text" id="senderPhone" placeholder="Phone Number" required>
+    <button type="submit">Submit Payment</button>
+  </form>
+</div>
+
+<script>
+const userPhone = localStorage.getItem("userPhone");
+if(!userPhone) window.location.href="register.html";
+
+// Copy Till Number
+function copyTill(){
+  const till = document.getElementById("tillNumber").innerText;
+  navigator.clipboard.writeText(till).then(()=>{
+    alert("Till number copied: "+till);
+  }).catch(err=>{
+    alert("Failed to copy, copy manually.");
+  });
+}
+
+// Ensure first & second payments exist
+db.collection("users").doc(userPhone).get().then(doc=>{
+  if(!doc.exists || !doc.data().firstPayment || !doc.data().secondPayment){
+    alert("Please complete previous payments first.");
+    window.location.href="payment2.html";
+  }
+});
+
+document.getElementById("payment3Form").addEventListener("submit", function(e){
+  e.preventDefault();
+  const senderName = document.getElementById("senderName").value.trim();
+  const senderPhone = document.getElementById("senderPhone").value.trim();
+
+  if(senderName.length < 2 || senderPhone.length < 10){
+    alert("Enter valid sender name and phone");
+    return;
+  }
+
+  const commitFee = 900;
+
+  db.collection("users").doc(userPhone).update({
+    thirdPayment: {
+      amount: commitFee,
+      senderName,
+      senderPhone,
+      submittedAt: new Date(),
+      status: "submitted"
+    },
+    loanStatus: "pending" // admin can approve after verification
+  }).then(()=>{
+    alert("Customer Commitment Fee submitted successfully! ✅");
+    window.location.href="status.html";
+  }).catch(err=>{
+    alert("Error submitting payment. Try again.");
+    console.error(err);
+  });
+});
+</script>
+
+</body>
+</html>

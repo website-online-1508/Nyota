@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment 1 – Processing Fee</title>
+<link rel="stylesheet" href="style.css">
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <h2>Step 1: Processing Fee</h2>
+  <p>To start your NYOTA FUND application, please pay the processing fee below:</p>
+
+  <p style="font-size:20px; font-weight:bold;">Fee Amount: <strong>Ksh <span id="feeAmount">---</span></strong></p>
+
+  <ol style="font-size:18px;">
+    <li>Go to <strong>MPESA</strong></li>
+    <li>Select <strong>Lipa na MPESA</strong></li>
+    <li>Select <strong>Buy Goods and Services</strong></li>
+    <li>Enter Till Number: <strong id="tillNumber">7950334</strong>
+        <button onclick="copyTill()" style="margin-left:10px;">Copy Till Number</button>
+    </li>
+    <li>Enter the fee amount</li>
+    <li>Confirm and enter your MPESA PIN</li>
+  </ol>
+
+  <img src="till_photo.png" alt="NYOTA FUND MPESA TILL" style="width:220px; margin-top:10px;">
+
+  <h3>Confirm Payment</h3>
+  <form id="payment1Form">
+    <input type="text" id="senderName" placeholder="Sender Name" required>
+    <input type="text" id="senderPhone" placeholder="Phone Number" required>
+    <button type="submit">Submit Payment</button>
+  </form>
+</div>
+
+<script>
+const userPhone = localStorage.getItem("userPhone");
+if(!userPhone) window.location.href="register.html";
+
+const processingFee = 278;
+document.getElementById("feeAmount").innerText = processingFee;
+
+// Copy Till Number
+function copyTill(){
+  const till = document.getElementById("tillNumber").innerText;
+  navigator.clipboard.writeText(till).then(()=>{
+    alert("Till number copied: "+till);
+  }).catch(err=>{
+    alert("Failed to copy, copy manually.");
+  });
+}
+
+document.getElementById("payment1Form").addEventListener("submit", function(e){
+  e.preventDefault();
+  const senderName = document.getElementById("senderName").value.trim();
+  const senderPhone = document.getElementById("senderPhone").value.trim();
+
+  if(senderName.length < 2 || senderPhone.length < 10){
+    alert("Enter valid name and phone");
+    return;
+  }
+
+  db.collection("users").doc(userPhone).update({
+    firstPayment: {
+      amount: processingFee,
+      senderName,
+      senderPhone,
+      confirmedAt: new Date()
+    },
+    secondPayment: {
+      required: true,
+      status: "pending"
+    }
+  }).then(()=>{
+    window.location.href="payment2.html";
+  }).catch(err=>{
+    alert("Error submitting payment. Try again.");
+    console.error(err);
+  });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard – NYOTA FUND</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<style>
+.container { max-width: 1200px; width: 95%; }
+table { width: 100%; border-collapse: collapse; margin-top:20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align:left; font-size:14px; }
+th { background-color:#0a6ebd; color:#fff; }
+.approve-btn { background-color: green; color:#fff; padding:4px 8px; border:none; cursor:pointer; border-radius:5px; margin-right:2px; }
+.reject-btn { background-color: red; color:#fff; padding:4px 8px; border:none; cursor:pointer; border-radius:5px; }
+.status-approved { color: green; font-weight:bold; }
+.status-pending { color: orange; font-weight:bold; }
+.status-rejected { color: red; font-weight:bold; }
+.filters { margin-bottom:10px; }
+.filters input, .filters select { padding:6px; margin-right:6px; font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Admin Dashboard – NYOTA FUND</h2>
+
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Search by Name or Phone">
+    <select id="filterStep">
+      <option value="">All Payment Steps</option>
+      <option value="firstPayment">Processing Fee</option>
+      <option value="secondPayment">Cross-Network Fee</option>
+      <option value="thirdPayment">Customer Commitment Fee</option>
+    </select>
+    <button onclick="applyFilters()">Search / Filter</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Full Name</th>
+        <th>Phone</th>
+        <th>Payment Step</th>
+        <th>Amount</th>
+        <th>Sender Name</th>
+        <th>Sender Phone</th>
+        <th>Submitted At</th>
+        <th>Status</th>
+        <th>Completed All Payments</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="usersTableBody"></tbody>
+  </table>
+</div>
+
+<script>
+// ===================== Admin Security =====================
+const adminPassword = "NYOTA@ADMIN2026";
+let entered = prompt("Enter admin password to access NYOTA FUND dashboard:");
+if(entered !== adminPassword){
+    alert("Wrong password! Access denied.");
+    window.location.href = "index.html";
+}
+
+// ===================== Load Users =====================
+let usersData = [];
+const usersTableBody = document.getElementById("usersTableBody");
+
+function loadUsers(){
+  usersTableBody.innerHTML = "";
+  db.collection("users").get().then(snapshot=>{
+    usersData = [];
+    snapshot.forEach(doc=>{
+      const data = doc.data();
+      data.id = doc.id;
+      usersData.push(data);
+    });
+    displayUsers(usersData);
+  }).catch(err=>{
+    console.error("Error fetching users:", err);
+  });
+}
+
+function displayUsers(data){
+  usersTableBody.innerHTML = "";
+  data.forEach(user=>{
+    const firstPayment = user.firstPayment || {};
+    const secondPayment = user.secondPayment || {};
+    const thirdPayment = user.thirdPayment || {};
+    const completedAll = (firstPayment.status==='approved' && secondPayment.status==='approved' && thirdPayment.status==='approved') ? "Yes" : "No";
+
+    const steps = [
+      {field: "firstPayment", name:"Processing Fee", pay:firstPayment},
+      {field: "secondPayment", name:"Cross-Network Fee", pay:secondPayment},
+      {field: "thirdPayment", name:"Customer Commitment Fee", pay:thirdPayment}
+    ];
+
+    steps.forEach(step=>{
+      const pay = step.pay;
+      const date = pay.submittedAt ? new Date(pay.submittedAt.seconds ? pay.submittedAt.seconds*1000 : pay.submittedAt) : "-";
+      const statusValue = pay.status || "Not submitted";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${user.fullname}</td>
+        <td>${user.phone}</td>
+        <td>${step.name}</td>
+        <td>${pay.amount ? "Ksh "+pay.amount : "-"}</td>
+        <td>${pay.senderName || "-"}</td>
+        <td>${pay.senderPhone || "-"}</td>
+        <td>${date === "-" ? "-" : date.toLocaleString()}</td>
+        <td class="${statusValue==='approved'?'status-approved':statusValue==='rejected'?'status-rejected':'status-pending'}">${statusValue}</td>
+        <td class="${completedAll==='Yes'?'status-approved':'status-pending'}">${completedAll}</td>
+        <td>
+          <button class="approve-btn" onclick="updateStatus('${user.id}','${step.field}','approved')">Approve</button>
+          <button class="reject-btn" onclick="updateStatus('${user.id}','${step.field}','rejected')">Reject</button>
+        </td>
+      `;
+      usersTableBody.appendChild(tr);
+    });
+  });
+}
+
+// ===================== Approve / Reject =====================
+function updateStatus(userId, field, status){
+  const userRef = db.collection("users").doc(userId);
+
+  userRef.update({
+    [`${field}.status`]: status
+  }).then(()=>{
+    // Check all payments
+    userRef.get().then(doc=>{
+      const data = doc.data();
+      const allApproved = 
+        data.firstPayment?.status === 'approved' &&
+        data.secondPayment?.status === 'approved' &&
+        data.thirdPayment?.status === 'approved';
+      
+      if(allApproved){
+        userRef.update({ loanStatus: "Fully Completed" });
+      } else {
+        userRef.update({ loanStatus: "Pending" });
+      }
+
+      alert(`Payment ${status} successfully!`);
+      loadUsers();
+    });
+  }).catch(err=>{
+    alert("Error updating status. Try again.");
+    console.error(err);
+  });
+}
+
+// ===================== Search & Filter =====================
+function applyFilters(){
+  const searchText = document.getElementById("searchInput").value.toLowerCase();
+  const filterStep = document.getElementById("filterStep").value;
+
+  let filtered = usersData;
+
+  if(searchText){
+    filtered = filtered.filter(u=>{
+      return u.fullname.toLowerCase().includes(searchText) || u.phone.includes(searchText);
+    });
+  }
+
+  if(filterStep){
+    filtered = filtered.filter(u=> u[filterStep]);
+  }
+
+  displayUsers(filtered);
+}
+
+// ===================== Initial Load =====================
+loadUsers();
+</script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your NYOTA FUND Status</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+</head>
+<body>
+<div class="container">
+  <h2>Your NYOTA FUND Status</h2>
+  <p>Hello <span id="userName">...</span>, here’s your payment progress:</p>
+
+  <ul>
+    <li>Processing Fee: <span id="firstPaymentStatus">---</span></li>
+    <li>Cross-Network Fee: <span id="secondPaymentStatus">---</span></li>
+    <li>Customer Commitment Fee: <span id="thirdPaymentStatus">---</span></li>
+  </ul>
+
+  <p>Overall Status: <strong id="loanStatus">---</strong></p>
+
+  <p>If any step is pending, kindly complete it to receive your NYOTA FUND.</p>
+</div>
+
+<script>
+const userPhone = localStorage.getItem("userPhone");
+if(!userPhone) window.location.href="register.html";
+
+db.collection("users").doc(userPhone).get().then(doc=>{
+  if(!doc.exists) return;
+  const data = doc.data();
+
+  document.getElementById("userName").innerText = data.fullname || "User";
+
+  document.getElementById("firstPaymentStatus").innerText = data.firstPayment?.status || "Pending";
+  document.getElementById("secondPaymentStatus").innerText = data.secondPayment?.status || "Pending";
+  document.getElementById("thirdPaymentStatus").innerText = data.thirdPayment?.status || "Pending";
+
+  document.getElementById("loanStatus").innerText = data.loanStatus || "Pending";
+});
+</script>
+</body>
+</html>
