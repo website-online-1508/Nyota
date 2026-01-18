@@ -1,3 +1,4 @@
+// Only keep this locally, do NOT push to GitHub
 const firebaseConfig = {
   apiKey: "AIzaSyAthQbGd6MG40bzytcRi8sveLYb4jT8xME",
   authDomain: "knec-48ac1.firebaseapp.com",

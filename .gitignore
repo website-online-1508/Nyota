@@ -1,0 +1,8 @@
+# Ignore Firebase config
+firebase-config.js
+
+# Optional: ignore local environment files
+.env
+
+# Ignore node_modules if you use Node.js
+node_modules/
